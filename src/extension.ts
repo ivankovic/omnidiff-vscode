@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -19,7 +19,7 @@
 /**
  * Extension entry point: command registration and the editor-facing glue.
  *
- * Everything that can be tested without an editor lives in `codediff.ts`, `columns.ts` and
+ * Everything that can be tested without an editor lives in `omnidiff.ts`, `columns.ts` and
  * `git.ts`; this file is deliberately thin, because nothing in it can run under `node --test`.
  */
 
@@ -31,14 +31,14 @@ import * as vscode from 'vscode';
 
 import { ensureExecutable, resolveBinary, type Resolution } from './binary';
 import {
-  CodeDiffError,
+  OmniDiffError,
   DEFAULT_RENDER_OPTIONS,
   isBinaryAvailable,
   renderOptionsToml,
   runDiff,
   type RenderMode,
   type RenderOptions,
-} from './codediff';
+} from './omnidiff';
 import { applyHunks, clear, createDecorationTypes, type DecorationTypes } from './decorations';
 import {
   GitError,
@@ -49,19 +49,19 @@ import {
   showAtRevision,
 } from './git';
 
-const INSTALL_URL = 'https://github.com/ivankovic/codediff#installation';
+const INSTALL_URL = 'https://github.com/ivankovic/omnidiff#installation';
 
 /** How long an abandoned scratch directory survives. See `sweepScratch`. */
 const SCRATCH_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 function renderMode(): RenderMode {
-  return vscode.workspace.getConfiguration('codediff').get<RenderMode>('renderMode', 'default');
+  return vscode.workspace.getConfiguration('omnidiff').get<RenderMode>('renderMode', 'default');
 }
 
 /**
  * The six painting options, read from the settings.
  *
- * Keyed by codediff's own field names on one side and the settings' camelCase on the other, in one
+ * Keyed by omnidiff's own field names on one side and the settings' camelCase on the other, in one
  * table, so adding an option is one line rather than two that can disagree.
  */
 const RENDER_SETTINGS: ReadonlyArray<readonly [keyof RenderOptions, string]> = [
@@ -74,7 +74,36 @@ const RENDER_SETTINGS: ReadonlyArray<readonly [keyof RenderOptions, string]> = [
 ];
 
 /**
- * Writes the config file that `codediff.renderMode: custom` runs against, and returns its path.
+ * The settings section from before the rename to OmniDiff (v0.2.0), and the keys it had.
+ *
+ * Read once at activation: each value set at user or workspace scope is copied to the same
+ * `omnidiff.*` key when that one is unset there, so an upgrade keeps its settings. The old values
+ * stay where they are; VS Code greys them out as unknown. Remove after one release.
+ */
+const LEGACY_SECTION = 'codediff';
+const LEGACY_KEYS = [
+  'binaryPath',
+  'renderMode',
+  ...RENDER_SETTINGS.map(([, setting]) => `render.${setting}`),
+];
+
+async function adoptLegacySettings(): Promise<void> {
+  const legacy = vscode.workspace.getConfiguration(LEGACY_SECTION);
+  const current = vscode.workspace.getConfiguration('omnidiff');
+  for (const key of LEGACY_KEYS) {
+    const before = legacy.inspect(key);
+    const now = current.inspect(key);
+    if (before?.globalValue !== undefined && now?.globalValue === undefined) {
+      await current.update(key, before.globalValue, vscode.ConfigurationTarget.Global);
+    }
+    if (before?.workspaceValue !== undefined && now?.workspaceValue === undefined) {
+      await current.update(key, before.workspaceValue, vscode.ConfigurationTarget.Workspace);
+    }
+  }
+}
+
+/**
+ * Writes the config file that `omnidiff.renderMode: custom` runs against, and returns its path.
  *
  * Named after a hash of its own contents rather than written to one fixed path: two windows
  * diffing at the same moment with different settings would otherwise race on that file, and the
@@ -82,7 +111,7 @@ const RENDER_SETTINGS: ReadonlyArray<readonly [keyof RenderOptions, string]> = [
  * handful of small files per session at worst, swept with the rest of the scratch directory.
  */
 function writeRenderConfig(session: string): string {
-  const configured = vscode.workspace.getConfiguration('codediff.render');
+  const configured = vscode.workspace.getConfiguration('omnidiff.render');
   const options = { ...DEFAULT_RENDER_OPTIONS };
   for (const [field, setting] of RENDER_SETTINGS) {
     options[field] = configured.get<boolean>(setting, DEFAULT_RENDER_OPTIONS[field]);
@@ -104,10 +133,10 @@ function writeRenderConfig(session: string): string {
  * stop the extension loading - see `ensureExecutable`.
  */
 function binary(extensionRoot: string): Resolution {
-  const configured = vscode.workspace.getConfiguration('codediff').get<string>('binaryPath');
+  const configured = vscode.workspace.getConfiguration('omnidiff').get<string>('binaryPath');
   const resolution = resolveBinary(extensionRoot, process.platform, configured);
   if (resolution.source === 'bundled' && !ensureExecutable(resolution.command, process.platform)) {
-    return { command: 'codediff', source: 'path' };
+    return { command: 'omnidiff', source: 'path' };
   }
   return resolution;
 }
@@ -116,11 +145,11 @@ function binary(extensionRoot: string): Resolution {
  * One side of a diff.
  *
  * `diffPath` and `display` are separate because they genuinely differ: when the content being
- * diffed is an unsaved buffer, codediff has to read a temp copy of it (the CLI reads files from
+ * diffed is an unsaved buffer, omnidiff has to read a temp copy of it (the CLI reads files from
  * disk and cannot see a dirty buffer), while the editor we paint must be the user's real one.
  */
 interface Side {
-  /** The file handed to the codediff CLI. */
+  /** The file handed to the omnidiff CLI. */
   diffPath: string;
   /** The document opened and painted. */
   display: vscode.Uri;
@@ -145,10 +174,10 @@ async function openSide(side: Side): Promise<vscode.TextEditor> {
 }
 
 /**
- * The directory codediff should resolve its own configuration from.
+ * The directory omnidiff should resolve its own configuration from.
  *
- * codediff looks for the nearest `.codediff.toml` at or above its working directory, so this is
- * what decides the render options behind `codediff.renderMode: default` - and the extension host's
+ * omnidiff looks for the nearest `.omnidiff.toml` at or above its working directory, so this is
+ * what decides the render options behind `omnidiff.renderMode: default` - and the extension host's
  * inherited working directory is no answer at all, being wherever VS Code was started from. The
  * file under the cursor is, because its project's config is the one the user means.
  *
@@ -162,7 +191,7 @@ function configDirectory(before: Side, after: Side): string | undefined {
 }
 
 /**
- * Runs codediff over the two sides and paints its verdict on both.
+ * Runs omnidiff over the two sides and paints its verdict on both.
  *
  * Deliberately not VS Code's own `vscode.diff` command: that opens a *merged* diff editor whose
  * two sides are one editor, and `setDecorations` needs a `TextEditorDecorationType` per real
@@ -179,7 +208,7 @@ async function diffSides(
   const mode = renderMode();
 
   const diff = await vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Window, title: 'CodeDiff: diffing…' },
+    { location: vscode.ProgressLocation.Window, title: 'OmniDiff: diffing…' },
     () =>
       runDiff(command, before.diffPath, after.diffPath, {
         mode,
@@ -189,7 +218,7 @@ async function diffSides(
   );
 
   if (diff.binary) {
-    void vscode.window.showInformationMessage('CodeDiff: one of these files is binary - nothing to show.');
+    void vscode.window.showInformationMessage('OmniDiff: one of these files is binary - nothing to show.');
     return;
   }
 
@@ -200,7 +229,7 @@ async function diffSides(
   applyHunks(afterEditor, diff.after.hunks, types);
 
   if (diff.summary) {
-    vscode.window.setStatusBarMessage(`CodeDiff: ${diff.summary.replace(/_/g, ' ')}`, 5000);
+    vscode.window.setStatusBarMessage(`OmniDiff: ${diff.summary.replace(/_/g, ' ')}`, 5000);
   }
 }
 
@@ -213,7 +242,7 @@ async function promptForPair(): Promise<[vscode.Uri, vscode.Uri] | undefined> {
   const before = await vscode.window.showOpenDialog({
     canSelectMany: false,
     openLabel: 'Select the BEFORE file',
-    title: 'CodeDiff: before',
+    title: 'OmniDiff: before',
   });
   if (!before?.[0]) {
     return undefined;
@@ -221,7 +250,7 @@ async function promptForPair(): Promise<[vscode.Uri, vscode.Uri] | undefined> {
   const after = await vscode.window.showOpenDialog({
     canSelectMany: false,
     openLabel: 'Select the AFTER file',
-    title: 'CodeDiff: after',
+    title: 'OmniDiff: after',
   });
   if (!after?.[0]) {
     return undefined;
@@ -277,6 +306,7 @@ function sweepScratch(root: string): void {
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  void adoptLegacySettings().catch(() => undefined);
   const types = createDecorationTypes();
   const extensionRoot = context.extensionPath;
   // Registered on the context so VS Code disposes them with the extension; a leaked decoration
@@ -333,10 +363,10 @@ export function activate(context: vscode.ExtensionContext): void {
   /** Diffs the last saved bytes of `document` against what is currently in the buffer. */
   async function diffAgainstSaved(document: vscode.TextDocument): Promise<void> {
     if (document.uri.scheme !== 'file') {
-      throw new CodeDiffError('CodeDiff: this document is not a file on disk.');
+      throw new OmniDiffError('OmniDiff: this document is not a file on disk.');
     }
     if (!document.isDirty) {
-      void vscode.window.showInformationMessage('CodeDiff: no unsaved changes in this file.');
+      void vscode.window.showInformationMessage('OmniDiff: no unsaved changes in this file.');
       return;
     }
 
@@ -348,7 +378,7 @@ export function activate(context: vscode.ExtensionContext): void {
     //
     // Written as UTF-8, which is what `getText` gives back regardless of how the file was decoded.
     // For a file in some other encoding that makes the two sides disagree about non-ASCII bytes;
-    // the saved side is the one that is literally correct, and codediff itself assumes UTF-8.
+    // the saved side is the one that is literally correct, and omnidiff itself assumes UTF-8.
     const bufferPath = materialize(
       Buffer.from(document.getText(), 'utf8'),
       document.uri.fsPath,
@@ -368,23 +398,23 @@ export function activate(context: vscode.ExtensionContext): void {
   /**
    * Turns a thrown error into one message aimed at the user.
    *
-   * `CodeDiffError` and `GitError` already read as sentences; anything else is a bug and keeps its
+   * `OmniDiffError` and `GitError` already read as sentences; anything else is a bug and keeps its
    * raw text rather than a friendly rewrite that would hide it. A missing binary is the one case
    * worth an action button, since there is something concrete to do about it.
    */
   async function report(error: unknown): Promise<void> {
-    // Only a CodeDiffError gets the install offer. A GitError saying "git was not found on PATH"
-    // matches the same words but is about a different program entirely, and offering codediff's
-    // install page plus the `codediff.binaryPath` setting would send the user somewhere useless.
-    if (error instanceof CodeDiffError && /not (?:be )?found|is not installed|ENOENT/i.test(error.message)) {
+    // Only an OmniDiffError gets the install offer. A GitError saying "git was not found on PATH"
+    // matches the same words but is about a different program entirely, and offering omnidiff's
+    // install page plus the `omnidiff.binaryPath` setting would send the user somewhere useless.
+    if (error instanceof OmniDiffError && /not (?:be )?found|is not installed|ENOENT/i.test(error.message)) {
       await offerInstall(error.message);
       return;
     }
-    if (error instanceof CodeDiffError || error instanceof GitError) {
+    if (error instanceof OmniDiffError || error instanceof GitError) {
       void vscode.window.showErrorMessage(error.message);
       return;
     }
-    void vscode.window.showErrorMessage(`CodeDiff: ${String(error)}`);
+    void vscode.window.showErrorMessage(`OmniDiff: ${String(error)}`);
   }
 
   async function offerInstall(message: string): Promise<void> {
@@ -392,7 +422,7 @@ export function activate(context: vscode.ExtensionContext): void {
     if (choice === 'Install instructions') {
       await vscode.env.openExternal(vscode.Uri.parse(INSTALL_URL));
     } else if (choice === 'Set path…') {
-      await vscode.commands.executeCommand('workbench.action.openSettings', 'codediff.binaryPath');
+      await vscode.commands.executeCommand('workbench.action.openSettings', 'omnidiff.binaryPath');
     }
   }
 
@@ -410,13 +440,13 @@ export function activate(context: vscode.ExtensionContext): void {
   function requireTarget(argument: unknown): vscode.Uri {
     const uri = targetUri(argument);
     if (!uri) {
-      throw new CodeDiffError('CodeDiff: open a file first, or pick one in the Source Control view.');
+      throw new OmniDiffError('OmniDiff: open a file first, or pick one in the Source Control view.');
     }
     return uri;
   }
 
   context.subscriptions.push(
-    command('codediff.diffTwoFiles', async () => {
+    command('omnidiff.diffTwoFiles', async () => {
       const pair = await promptForPair();
       if (!pair) {
         return;
@@ -430,14 +460,14 @@ export function activate(context: vscode.ExtensionContext): void {
       );
     }),
 
-    command('codediff.diffWithHead', async (argument) => {
+    command('omnidiff.diffWithHead', async (argument) => {
       await diffAgainstRevision(requireTarget(argument), 'HEAD');
     }),
 
-    command('codediff.diffWithRevision', async (argument) => {
+    command('omnidiff.diffWithRevision', async (argument) => {
       const uri = requireTarget(argument);
       const ref = await vscode.window.showInputBox({
-        title: 'CodeDiff: diff against revision',
+        title: 'OmniDiff: diff against revision',
         prompt: 'A branch, tag, or commit - anything `git show` accepts.',
         value: 'HEAD~1',
         ignoreFocusOut: true,
@@ -448,7 +478,7 @@ export function activate(context: vscode.ExtensionContext): void {
       await diffAgainstRevision(uri, ref.trim());
     }),
 
-    command('codediff.diffWithSaved', async (argument) => {
+    command('omnidiff.diffWithSaved', async (argument) => {
       const uri = requireTarget(argument);
       // Right-clicking a tab does not focus it, so this command cannot just read
       // `activeTextEditor` - it has to find the document the menu actually pointed at.
@@ -456,12 +486,12 @@ export function activate(context: vscode.ExtensionContext): void {
         (candidate) => candidate.uri.toString() === uri.toString()
       );
       if (!document) {
-        throw new CodeDiffError('CodeDiff: that file is not open, so it has no unsaved changes.');
+        throw new OmniDiffError('OmniDiff: that file is not open, so it has no unsaved changes.');
       }
       await diffAgainstSaved(document);
     }),
 
-    vscode.commands.registerCommand('codediff.clearDecorations', () => {
+    vscode.commands.registerCommand('omnidiff.clearDecorations', () => {
       for (const editor of vscode.window.visibleTextEditors) {
         clear(editor, types);
       }
@@ -478,18 +508,18 @@ export function activate(context: vscode.ExtensionContext): void {
     }
     // Only the `path` case is worth an install offer. A bundled binary that fails to run is a
     // broken package rather than a missing prerequisite, and an explicit setting that does not
-    // resolve is a typo in that setting - neither is fixed by codediff's install page.
+    // resolve is a typo in that setting - neither is fixed by omnidiff's install page.
     if (resolved.source === 'path') {
       void offerInstall(
-        `CodeDiff: '${resolved.command}' was not found on PATH. The extension needs the codediff CLI.`
+        `OmniDiff: '${resolved.command}' was not found on PATH. The extension needs the omnidiff CLI.`
       );
     } else if (resolved.source === 'setting') {
       void vscode.window.showErrorMessage(
-        `CodeDiff: the codediff.binaryPath setting points at '${resolved.command}', which could not be run.`
+        `OmniDiff: the omnidiff.binaryPath setting points at '${resolved.command}', which could not be run.`
       );
     } else {
       void vscode.window.showErrorMessage(
-        'CodeDiff: the bundled codediff binary could not be run. Reinstall the extension, or set codediff.binaryPath.'
+        'OmniDiff: the bundled omnidiff binary could not be run. Reinstall the extension, or set omnidiff.binaryPath.'
       );
     }
   });

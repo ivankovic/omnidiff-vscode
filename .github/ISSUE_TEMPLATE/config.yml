@@ -1,12 +1,12 @@
 blank_issues_enabled: true
 contact_links:
   - name: The diff itself looks wrong
-    url: https://github.com/ivankovic/codediff/issues
+    url: https://github.com/ivankovic/omnidiff/issues
     about: >-
-      If the highlighting lands where codediff says it should but the verdict is wrong - something
+      If the highlighting lands where omnidiff says it should but the verdict is wrong - something
       reported as an insert that is really a move, a match that should not have been made - that is
-      the CLI's business, not this extension's. `codediff --mode json BEFORE AFTER` reproduces it
+      the CLI's business, not this extension's. `omnidiff --mode json BEFORE AFTER` reproduces it
       without VS Code in the way.
   - name: The same thing in Neovim
-    url: https://github.com/ivankovic/codediff.nvim
-    about: codediff.nvim is the Neovim front end. It shares the JSON contract but none of this code.
+    url: https://github.com/ivankovic/omnidiff.nvim
+    about: omnidiff.nvim is the Neovim front end. It shares the JSON contract but none of this code.

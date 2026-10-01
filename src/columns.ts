@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -19,19 +19,19 @@
 /**
  * Byte columns to UTF-16 code units.
  *
- * This is the single most likely thing for a codediff integration to get wrong, and it is
- * invisible until it isn't: **codediff reports columns as byte offsets within their row** - that
+ * This is the single most likely thing for an omnidiff integration to get wrong, and it is
+ * invisible until it isn't: **omnidiff reports columns as byte offsets within their row** - that
  * is what tree-sitter's `Point::column` gives and what its `SourceColumn` type documents - while
  * VS Code's `Position.character` counts UTF-16 code units. They agree exactly as long as every
  * character on the line is ASCII, and diverge the moment one is not.
  *
- * Measured against the real binary: for the line `x = "ααα" + bbb`, codediff reports
+ * Measured against the real binary: for the line `x = "ααα" + bbb`, omnidiff reports
  * `start_column: 15` where VS Code needs `12`. Without this conversion every range on every line
  * containing a non-ASCII character lands somewhere else, and nothing about the failure points at
  * the cause.
  *
  * Neovim needs no equivalent - `nvim_buf_set_extmark` takes byte columns directly - which is why
- * codediff emits bytes rather than adding a second coordinate space it could disagree with itself
+ * omnidiff emits bytes rather than adding a second coordinate space it could disagree with itself
  * about. The conversion belongs here.
  */
 
@@ -39,7 +39,7 @@
  * The UTF-16 offset within `line` corresponding to UTF-8 byte offset `byteColumn`.
  *
  * Clamps rather than throwing at both ends: a `byteColumn` past the end of the line returns the
- * line's full UTF-16 length, and a negative one returns 0. codediff should never emit either, but
+ * line's full UTF-16 length, and a negative one returns 0. omnidiff should never emit either, but
  * an out-of-range column is not worth failing a whole diff over - VS Code clamps invalid positions
  * to the document anyway, so throwing here would turn a cosmetic problem into a missing diff.
  *

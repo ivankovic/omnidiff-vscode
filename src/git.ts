@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -17,7 +17,7 @@
  */
 
 /**
- * Reading files out of git, and putting them somewhere codediff can diff.
+ * Reading files out of git, and putting them somewhere omnidiff can diff.
  *
  * Imports `node:child_process`, `node:fs` and `node:path`, but not `vscode`, so all of it is
  * testable under plain `node --test` against a real throwaway repository - see `src/test/git.test.ts`.
@@ -36,7 +36,7 @@ function run(args: string[], cwd: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     // `encoding: 'buffer'` is load-bearing, not a micro-optimisation. The default decodes stdout as
     // UTF-8, which corrupts a file with a BOM, a non-UTF-8 encoding, or any binary content - and we
-    // would then write that corruption to disk and diff something git never had. codediff answers
+    // would then write that corruption to disk and diff something git never had. omnidiff answers
     // `{"binary": true}` correctly when it sees real bytes; decoding here would take that away.
     execFile('git', args, { cwd, encoding: 'buffer', maxBuffer: MAX_BUFFER }, (error, stdout, stderr) => {
       if (error) {
@@ -103,11 +103,11 @@ export async function showAtRevision(root: string, ref: string, relPath: string)
 /**
  * Writes `bytes` into `intoDir` under `originalPath`'s **exact basename**, and returns the path.
  *
- * The basename is the whole point. codediff picks a tree-sitter grammar from the path (see its
+ * The basename is the whole point. omnidiff picks a tree-sitter grammar from the path (see its
  * `language_for_path_and_content`, which also sniffs content for ambiguous extensions like `.ts`),
  * so a blob written to a scratch name gets no grammar, silently falls back to a plain line diff,
  * and the tool merely looks worse rather than broken. git's own difftool does the same thing for
- * the same reason - and codediff's README says so about jj: it needs each file's real path and
+ * the same reason - and omnidiff's README says so about jj: it needs each file's real path and
  * extension for language detection to work.
  *
  * `intoDir` has to disambiguate everything the basename no longer can. Two axes collide: the same

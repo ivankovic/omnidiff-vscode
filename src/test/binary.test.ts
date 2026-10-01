@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -66,13 +66,13 @@ let withBundle = '';
 let withoutBundle = '';
 
 before(() => {
-  scratch = mkdtempSync(join(tmpdir(), 'codediff-binary-test-'));
+  scratch = mkdtempSync(join(tmpdir(), 'omnidiff-binary-test-'));
   withBundle = join(scratch, 'bundled');
   withoutBundle = join(scratch, 'plain');
   mkdirSync(join(withBundle, 'bin'), { recursive: true });
   mkdirSync(withoutBundle, { recursive: true });
-  writeFileSync(join(withBundle, 'bin', 'codediff'), '#!/bin/sh\nexit 0\n');
-  writeFileSync(join(withBundle, 'bin', 'codediff.exe'), 'MZ');
+  writeFileSync(join(withBundle, 'bin', 'omnidiff'), '#!/bin/sh\nexit 0\n');
+  writeFileSync(join(withBundle, 'bin', 'omnidiff.exe'), 'MZ');
 });
 
 after(() => {
@@ -83,54 +83,54 @@ describe('resolveBinary', () => {
   it('prefers an explicit setting over the bundled binary', () => {
     // Anyone who has pointed the setting at their own build must get that build, not a silently
     // different one - this is the whole reason the setting outranks the bundle.
-    const resolved = resolveBinary(withBundle, 'linux', '/opt/mine/codediff');
+    const resolved = resolveBinary(withBundle, 'linux', '/opt/mine/omnidiff');
     assert.equal(resolved.source, 'setting');
-    assert.equal(resolved.command, '/opt/mine/codediff');
+    assert.equal(resolved.command, '/opt/mine/omnidiff');
   });
 
   it('treats the packaged default as "no choice made", not as an explicit setting', () => {
     // VS Code hands back the default when nothing is set. Reading that as a choice would shadow
     // the bundle for every user who never touched the setting - i.e. almost all of them.
-    assert.equal(resolveBinary(withBundle, 'linux', 'codediff').source, 'bundled');
+    assert.equal(resolveBinary(withBundle, 'linux', 'omnidiff').source, 'bundled');
     assert.equal(resolveBinary(withBundle, 'linux', undefined).source, 'bundled');
     assert.equal(resolveBinary(withBundle, 'linux', '   ').source, 'bundled');
   });
 
   it('uses the bundled binary when one is present', () => {
     const resolved = resolveBinary(withBundle, 'linux', undefined);
-    assert.equal(resolved.command, join(withBundle, 'bin', 'codediff'));
+    assert.equal(resolved.command, join(withBundle, 'bin', 'omnidiff'));
   });
 
   it('falls through to PATH when this VSIX carries no binary', () => {
     // The target-less fallback VSIX, published for architectures with no build.
     const resolved = resolveBinary(withoutBundle, 'linux', undefined);
     assert.equal(resolved.source, 'path');
-    assert.equal(resolved.command, 'codediff');
+    assert.equal(resolved.command, 'omnidiff');
   });
 
-  it('looks for codediff.exe on Windows', () => {
-    assert.equal(bundledName('win32'), 'codediff.exe');
-    assert.equal(bundledName('linux'), 'codediff');
-    assert.equal(bundledName('darwin'), 'codediff');
-    assert.equal(resolveBinary(withBundle, 'win32', undefined).command, join(withBundle, 'bin', 'codediff.exe'));
+  it('looks for omnidiff.exe on Windows', () => {
+    assert.equal(bundledName('win32'), 'omnidiff.exe');
+    assert.equal(bundledName('linux'), 'omnidiff');
+    assert.equal(bundledName('darwin'), 'omnidiff');
+    assert.equal(resolveBinary(withBundle, 'win32', undefined).command, join(withBundle, 'bin', 'omnidiff.exe'));
   });
 
   it('does not find a linux binary when running as win32, or the reverse', () => {
     const onlyUnix = join(scratch, 'unix-only');
     mkdirSync(join(onlyUnix, 'bin'), { recursive: true });
-    writeFileSync(join(onlyUnix, 'bin', 'codediff'), '');
+    writeFileSync(join(onlyUnix, 'bin', 'omnidiff'), '');
     assert.equal(resolveBinary(onlyUnix, 'win32', undefined).source, 'path');
     assert.equal(resolveBinary(onlyUnix, 'linux', undefined).source, 'bundled');
   });
 
   it('puts the bundle where fetch-binary.mjs writes it', () => {
-    assert.equal(bundledPath('/ext', 'linux'), join('/ext', 'bin', 'codediff'));
+    assert.equal(bundledPath('/ext', 'linux'), join('/ext', 'bin', 'omnidiff'));
   });
 });
 
 describe('ensureExecutable', () => {
   it('sets the mode bit a VSIX may not have carried', () => {
-    const path = join(withBundle, 'bin', 'codediff');
+    const path = join(withBundle, 'bin', 'omnidiff');
     chmodSync(path, 0o644);
     assert.equal(statSync(path).mode & 0o111, 0, 'precondition: not executable');
     assert.equal(ensureExecutable(path, 'linux'), true);
@@ -163,7 +163,7 @@ describe('platform targets', () => {
     assert.ok(!workflowTargets().includes('alpine-x64'));
   });
 
-  it('cover the four architectures codediff publishes binaries for', () => {
+  it('cover the four architectures omnidiff publishes binaries for', () => {
     for (const target of ['linux-x64', 'linux-arm64', 'darwin-x64', 'darwin-arm64', 'win32-x64']) {
       assert.ok(scriptTargets().includes(target), `missing ${target}`);
     }

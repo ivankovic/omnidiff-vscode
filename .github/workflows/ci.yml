@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
 
-# One job per gate, matching the main codediff repository, so a red badge says which gate broke
+# One job per gate, matching the main omnidiff repository, so a red badge says which gate broke
 # without opening the log.
 jobs:
   compile:
@@ -53,13 +53,13 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
-      # `src/test/integration.test.ts` skips itself here: codediff is not installed, and building
+      # `src/test/integration.test.ts` skips itself here: omnidiff is not installed, and building
       # it would add minutes of Rust compilation to every run for one assertion the unit tests
       # already cover except for the spawn.
       - run: npm test
 
   # Only the target-less fallback VSIX is built here. The five platform-specific ones need a
-  # codediff release to download from, which would make every pull request depend on a published
+  # omnidiff release to download from, which would make every pull request depend on a published
   # tag of another repository; they are built in release.yml, on a tag, where that dependency is
   # real anyway.
   package:
@@ -78,16 +78,16 @@ jobs:
       - run: npm ci
       # Catches a broken manifest, a missing file, or a .vscodeignore that excludes something the
       # extension needs - none of which tsc or the tests can see.
-      - run: npx --yes @vscode/vsce package --out codediff.vsix
+      - run: npx --yes @vscode/vsce package --out omnidiff.vsix
 
       # The fallback must carry NO binary: it is what the Marketplace serves to architectures with
       # no build, and those users are meant to fall through to PATH. A binary leaking into it would
       # be the wrong architecture for every one of them.
       - name: Fallback VSIX carries no binary
         run: |
-          if unzip -Z1 codediff.vsix | grep -q '^extension/bin/'; then
+          if unzip -Z1 omnidiff.vsix | grep -q '^extension/bin/'; then
             echo "::error::the target-less VSIX contains a bundled binary"
-            unzip -Z1 codediff.vsix | grep '^extension/bin/'
+            unzip -Z1 omnidiff.vsix | grep '^extension/bin/'
             exit 1
           fi
           echo "confirmed: no extension/bin/ entries"
@@ -95,4 +95,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: vsix
-          path: codediff.vsix
+          path: omnidiff.vsix

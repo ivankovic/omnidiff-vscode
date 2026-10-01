@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -17,7 +17,7 @@
  */
 
 /**
- * Deciding which `codediff` executable to run.
+ * Deciding which `omnidiff` executable to run.
  *
  * Imports `node:fs` and `node:path` but not `vscode`, and takes the extension root and platform as
  * arguments rather than reading them from a host, so it tests under plain `node --test`.
@@ -37,9 +37,9 @@ export interface Resolution {
   source: Source;
 }
 
-/** `codediff.exe` on Windows, `codediff` everywhere else. */
+/** `omnidiff.exe` on Windows, `omnidiff` everywhere else. */
 export function bundledName(platform: string): string {
-  return platform === 'win32' ? 'codediff.exe' : 'codediff';
+  return platform === 'win32' ? 'omnidiff.exe' : 'omnidiff';
 }
 
 export function bundledPath(extensionRoot: string, platform: string): string {
@@ -49,18 +49,18 @@ export function bundledPath(extensionRoot: string, platform: string): string {
 /**
  * Picks the executable, in the order a user would expect to win.
  *
- * 1. An explicit `codediff.binaryPath` setting. It beats the bundle unconditionally, so anyone
+ * 1. An explicit `omnidiff.binaryPath` setting. It beats the bundle unconditionally, so anyone
  *    running their own build - a debug build, a patched one, a newer release - gets what they
  *    asked for rather than a silently different binary.
  * 2. The bundled binary, if this VSIX carries one. Platform-specific VSIXs do; the target-less
  *    fallback published for architectures with no build does not.
- * 3. `codediff` on `PATH`.
+ * 3. `omnidiff` on `PATH`.
  *
  * Step 2 is the reason this exists at all. A VS Code launched from Finder or the Dock does not
- * inherit a login shell's `PATH`, so `~/.cargo/bin/codediff` is invisible to it and the extension
+ * inherit a login shell's `PATH`, so `~/.cargo/bin/omnidiff` is invisible to it and the extension
  * reports a missing binary the user can plainly run in a terminal.
  *
- * `configured` is compared against the packaged default (`'codediff'`) rather than tested for
+ * `configured` is compared against the packaged default (`'omnidiff'`) rather than tested for
  * emptiness: VS Code returns the default when nothing is set, so treating that as an explicit
  * choice would let it shadow the bundle for everyone.
  */
@@ -68,7 +68,7 @@ export function resolveBinary(
   extensionRoot: string,
   platform: string,
   configured: string | undefined,
-  defaultSetting = 'codediff'
+  defaultSetting = 'omnidiff'
 ): Resolution {
   const trimmed = configured?.trim();
   if (trimmed && trimmed !== defaultSetting) {

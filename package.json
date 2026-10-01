@@ -1,20 +1,20 @@
 {
-  "name": "codediff",
-  "displayName": "CodeDiff",
-  "description": "Syntax-aware diff highlighting, backed by the codediff CLI",
+  "name": "omnidiff",
+  "displayName": "OmniDiff",
+  "description": "Syntax-aware diff highlighting, backed by the omnidiff CLI",
   "version": "0.0.1",
-  "codediffVersion": "v0.0.14",
+  "omnidiffVersion": "v0.2.0",
   "publisher": "ivankovic",
   "license": "AGPL-3.0-or-later",
   "author": "Marko Ivankovic",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ivankovic/codediff-vscode.git"
+    "url": "https://github.com/ivankovic/omnidiff-vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/ivankovic/codediff-vscode/issues"
+    "url": "https://github.com/ivankovic/omnidiff-vscode/issues"
   },
-  "homepage": "https://github.com/ivankovic/codediff",
+  "homepage": "https://github.com/ivankovic/omnidiff",
   "icon": "icon.png",
   "galleryBanner": {
     "color": "#1f2430",
@@ -38,75 +38,75 @@
   "contributes": {
     "commands": [
       {
-        "command": "codediff.diffTwoFiles",
+        "command": "omnidiff.diffTwoFiles",
         "title": "Diff Two Files\u2026",
-        "category": "CodeDiff"
+        "category": "OmniDiff"
       },
       {
-        "command": "codediff.diffWithHead",
+        "command": "omnidiff.diffWithHead",
         "title": "Diff With HEAD",
-        "category": "CodeDiff"
+        "category": "OmniDiff"
       },
       {
-        "command": "codediff.diffWithRevision",
+        "command": "omnidiff.diffWithRevision",
         "title": "Diff With Revision\u2026",
-        "category": "CodeDiff"
+        "category": "OmniDiff"
       },
       {
-        "command": "codediff.diffWithSaved",
+        "command": "omnidiff.diffWithSaved",
         "title": "Diff With Last Saved",
-        "category": "CodeDiff"
+        "category": "OmniDiff"
       },
       {
-        "command": "codediff.clearDecorations",
+        "command": "omnidiff.clearDecorations",
         "title": "Clear Highlights",
-        "category": "CodeDiff"
+        "category": "OmniDiff"
       }
     ],
     "menus": {
       "scm/resourceState/context": [
         {
-          "command": "codediff.diffWithHead",
+          "command": "omnidiff.diffWithHead",
           "when": "scmProvider == git",
-          "group": "codediff@1"
+          "group": "omnidiff@1"
         },
         {
-          "command": "codediff.diffWithRevision",
+          "command": "omnidiff.diffWithRevision",
           "when": "scmProvider == git",
-          "group": "codediff@2"
+          "group": "omnidiff@2"
         }
       ],
       "editor/title/context": [
         {
-          "command": "codediff.diffWithHead",
+          "command": "omnidiff.diffWithHead",
           "when": "resourceScheme == file",
-          "group": "codediff@1"
+          "group": "omnidiff@1"
         },
         {
-          "command": "codediff.diffWithSaved",
+          "command": "omnidiff.diffWithSaved",
           "when": "resourceScheme == file",
-          "group": "codediff@2"
+          "group": "omnidiff@2"
         }
       ],
       "commandPalette": [
         {
-          "command": "codediff.diffWithHead",
+          "command": "omnidiff.diffWithHead",
           "when": "editorIsOpen"
         },
         {
-          "command": "codediff.diffWithRevision",
+          "command": "omnidiff.diffWithRevision",
           "when": "editorIsOpen"
         },
         {
-          "command": "codediff.diffWithSaved",
+          "command": "omnidiff.diffWithSaved",
           "when": "editorIsOpen"
         }
       ]
     },
     "colors": [
       {
-        "id": "codediff.insertBackground",
-        "description": "Background of code codediff reports as inserted.",
+        "id": "omnidiff.insertBackground",
+        "description": "Background of code omnidiff reports as inserted.",
         "defaults": {
           "light": "#32d74b99",
           "dark": "#32d74bb3",
@@ -115,8 +115,8 @@
         }
       },
       {
-        "id": "codediff.deleteBackground",
-        "description": "Background of code codediff reports as deleted.",
+        "id": "omnidiff.deleteBackground",
+        "description": "Background of code omnidiff reports as deleted.",
         "defaults": {
           "light": "#ff3b3099",
           "dark": "#ff3b30b3",
@@ -125,8 +125,8 @@
         }
       },
       {
-        "id": "codediff.updateBackground",
-        "description": "Background of code codediff reports as updated in place.",
+        "id": "omnidiff.updateBackground",
+        "description": "Background of code omnidiff reports as updated in place.",
         "defaults": {
           "light": "#ff8c1a99",
           "dark": "#ff8c1ab3",
@@ -135,8 +135,8 @@
         }
       },
       {
-        "id": "codediff.moveBackground",
-        "description": "Background of code codediff reports as moved, and of its counterpart on the other side.",
+        "id": "omnidiff.moveBackground",
+        "description": "Background of code omnidiff reports as moved, and of its counterpart on the other side.",
         "defaults": {
           "light": "#c8c9d1cc",
           "dark": "#5c5d64cc",
@@ -146,14 +146,14 @@
       }
     ],
     "configuration": {
-      "title": "CodeDiff",
+      "title": "OmniDiff",
       "properties": {
-        "codediff.binaryPath": {
+        "omnidiff.binaryPath": {
           "type": "string",
-          "default": "codediff",
-          "markdownDescription": "Path to (or name of) the `codediff` binary. Leave at the default to use the binary bundled with this extension when there is one, falling back to `PATH`. Any other value wins over both, so point this at your own build to use it."
+          "default": "omnidiff",
+          "markdownDescription": "Path to (or name of) the `omnidiff` binary. Leave at the default to use the binary bundled with this extension when there is one, falling back to `PATH`. Any other value wins over both, so point this at your own build to use it."
         },
-        "codediff.renderMode": {
+        "omnidiff.renderMode": {
           "type": "string",
           "enum": [
             "default",
@@ -162,43 +162,43 @@
             "custom"
           ],
           "enumDescriptions": [
-            "Use whatever is persisted in codediff's own config - the nearest .codediff.toml at or above the file being diffed, else your user-level one.",
+            "Use whatever is persisted in omnidiff's own config - the nearest .omnidiff.toml at or above the file being diffed, else your user-level one.",
             "The tightest reading: drop standalone brackets and separators, trim leading whitespace.",
             "The fullest reading: keep standalone brackets and separators, keep leading whitespace.",
-            "Use the codediff.render.* options below, ignoring codediff's own config entirely."
+            "Use the omnidiff.render.* options below, ignoring omnidiff's own config entirely."
           ],
           "default": "default",
-          "markdownDescription": "Which ranges codediff paints. `default` defers to codediff's own config; `minimal` and `full` pass `--minimal`/`--full` and override it; `custom` uses the `codediff.render.*` options below, which are the same six the terminal UI offers under its `M` panel."
+          "markdownDescription": "Which ranges omnidiff paints. `default` defers to omnidiff's own config; `minimal` and `full` pass `--minimal`/`--full` and override it; `custom` uses the `omnidiff.render.*` options below, which are the same six the terminal UI offers under its `M` panel."
         },
-        "codediff.render.leadingWhitespace": {
+        "omnidiff.render.leadingWhitespace": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Keep the whitespace a range starts with, on every one of its lines, instead of trimming back to the first real character.\n\nOnly applies when `#codediff.renderMode#` is `custom`."
+          "markdownDescription": "Keep the whitespace a range starts with, on every one of its lines, instead of trimming back to the first real character.\n\nOnly applies when `#omnidiff.renderMode#` is `custom`."
         },
-        "codediff.render.structuralPunctuation": {
+        "omnidiff.render.structuralPunctuation": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Paint ranges that are nothing but brackets, separators and whitespace - `(`, `)`, `[`, `]`, `{`, `}`, `,`, `;`, `:`. Operators are never dropped by this: an edit from `<` to `<=` is the whole edit.\n\nOnly applies when `#codediff.renderMode#` is `custom`."
+          "markdownDescription": "Paint ranges that are nothing but brackets, separators and whitespace - `(`, `)`, `[`, `]`, `{`, `}`, `,`, `;`, `:`. Operators are never dropped by this: an edit from `<` to `<=` is the whole edit.\n\nOnly applies when `#omnidiff.renderMode#` is `custom`."
         },
-        "codediff.render.wholePairUpdates": {
+        "omnidiff.render.wholePairUpdates": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Highlight an updated pair whole - both `argument` and `i_am_an_argument` - instead of narrowing to the part that actually differs.\n\nOff in both `minimal` and `full`: this decides which ranges the diff *has* rather than how much of a decided range gets painted, so it sits on its own axis.\n\nOnly applies when `#codediff.renderMode#` is `custom`."
+          "markdownDescription": "Highlight an updated pair whole - both `argument` and `i_am_an_argument` - instead of narrowing to the part that actually differs.\n\nOff in both `minimal` and `full`: this decides which ranges the diff *has* rather than how much of a decided range gets painted, so it sits on its own axis.\n\nOnly applies when `#omnidiff.renderMode#` is `custom`."
         },
-        "codediff.render.paintReindentOnlyMoves": {
+        "omnidiff.render.paintReindentOnlyMoves": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Report a relocation as a move even when it is a pure reindent - nesting added or removed around otherwise untouched content, as when a Rust `if let` chain collapses.\n\nOnly applies when `#codediff.renderMode#` is `custom`."
+          "markdownDescription": "Report a relocation as a move even when it is a pure reindent - nesting added or removed around otherwise untouched content, as when a Rust `if let` chain collapses.\n\nOnly applies when `#omnidiff.renderMode#` is `custom`."
         },
-        "codediff.render.paintDisplacedMoves": {
+        "omnidiff.render.paintDisplacedMoves": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Report a node as moved when it was pushed along by an edit beside it rather than moved in its own right.\n\nOnly applies when `#codediff.renderMode#` is `custom`."
+          "markdownDescription": "Report a node as moved when it was pushed along by an edit beside it rather than moved in its own right.\n\nOnly applies when `#omnidiff.renderMode#` is `custom`."
         },
-        "codediff.render.paintResizedMoves": {
+        "omnidiff.render.paintResizedMoves": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Report a move whose two sides are different sizes.\n\nOnly applies when `#codediff.renderMode#` is `custom`."
+          "markdownDescription": "Report a move whose two sides are different sizes.\n\nOnly applies when `#omnidiff.renderMode#` is `custom`."
         }
       }
     }
