@@ -8,7 +8,7 @@ Notable changes to the OmniDiff extension (published as CodeDiff, `ivankovic.cod
 Changes to the `omnidiff` CLI itself live in
 [its own repository](https://github.com/ivankovic/omnidiff); this file covers the extension.
 
-## [Unreleased]
+## [0.1.0] - 2026-10-01
 
 ### Changed
 
