@@ -38,7 +38,7 @@ jobs:
           - win32-x64
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # 22 because @vscode/vsce declares `engines: node >= 22`; see the note in ci.yml.
           node-version: 22
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # 22 because @vscode/vsce declares `engines: node >= 22`; see the note in ci.yml.
           node-version: 22
@@ -145,7 +145,7 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # 22 because @vscode/vsce declares `engines: node >= 22`; see the note in ci.yml.
           node-version: 22
@@ -202,7 +202,7 @@ jobs:
     needs: [platform, fallback]
     if: github.ref_type == 'tag'
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
