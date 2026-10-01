@@ -203,6 +203,11 @@ repository — see their [install page](https://learn.microsoft.com/cli/azure/in
    If it is already wrong, the failing run prints the subject it actually presented — copy that
    verbatim into `az identity federated-credential update --subject`.
 
+   The names above are for a fresh setup. The identity this repository publishes with was created
+   before the rename to OmniDiff and kept its names, because renaming it would change its client
+   id; `az identity list -o table` shows them. The rename did change the repository name in the
+   subject, so the credential was updated to `omnidiff-vscode` on 2026-10-01.
+
 3. The GitHub side: an environment named `marketplace-publish`
    (<https://github.com/ivankovic/omnidiff-vscode/settings/environments>, no protection rules
    needed), and the Client ID and Tenant ID as the `AZURE_CLIENT_ID` and `AZURE_TENANT_ID`
