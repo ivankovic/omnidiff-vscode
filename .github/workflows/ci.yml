@@ -12,7 +12,7 @@ jobs:
     name: tsc
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -24,7 +24,7 @@ jobs:
     name: eslint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -47,7 +47,7 @@ jobs:
         # to name the files. On [18, 20] alone that regression was invisible.
         node: [18, 20, 22]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
@@ -66,7 +66,7 @@ jobs:
     name: vsce package (fallback, no binary)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           # 22, not the 20 the other jobs use: @vscode/vsce declares `engines: node >= 22`. npm only

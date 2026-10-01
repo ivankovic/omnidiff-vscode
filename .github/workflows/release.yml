@@ -37,7 +37,7 @@ jobs:
           - darwin-arm64
           - win32-x64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           # 22 because @vscode/vsce declares `engines: node >= 22`; see the note in ci.yml.
@@ -80,7 +80,7 @@ jobs:
     name: fallback (no binary)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           # 22 because @vscode/vsce declares `engines: node >= 22`; see the note in ci.yml.
