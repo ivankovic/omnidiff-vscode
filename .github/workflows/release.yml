@@ -68,7 +68,7 @@ jobs:
         if: matrix.target == 'win32-x64'
         run: unzip -Z1 omnidiff-win32-x64.vsix | grep -qx 'extension/bin/omnidiff.exe'
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: vsix-${{ matrix.target }}
           path: omnidiff-${{ matrix.target }}.vsix
@@ -94,7 +94,7 @@ jobs:
             echo "::error::the fallback VSIX contains a bundled binary"
             exit 1
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: vsix-fallback
           path: omnidiff-fallback.vsix
