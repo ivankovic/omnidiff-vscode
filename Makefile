@@ -3,7 +3,7 @@
 # exists so that `make deploy` is one command with the guards attached, not so that there is a
 # second way to build.
 #
-# The division of labour with .github/workflows/release.yml is the same one the codediff
+# The division of labour with .github/workflows/release.yml is the same one the omnidiff
 # repository uses:
 #
 #   make deploy   runs the gates locally, then tags and pushes. It publishes nothing itself.
@@ -64,15 +64,15 @@ endef
 # musl and Windows-on-ARM users are served.
 package: clean
 	$(require-node-22)
-	$(VSCE) package --out codediff-fallback.vsix
-	@if unzip -Z1 codediff-fallback.vsix | grep -q '^extension/bin/'; then \
+	$(VSCE) package --out omnidiff-fallback.vsix
+	@if unzip -Z1 omnidiff-fallback.vsix | grep -q '^extension/bin/'; then \
 		echo "error: the fallback VSIX contains a bundled binary" >&2; \
 		exit 1; \
 	fi
-	@echo "codediff-fallback.vsix: no bundled binary, as intended"
+	@echo "omnidiff-fallback.vsix: no bundled binary, as intended"
 
 # Every VSIX a release ships, built the way release.yml builds them. Not part of `check` - it
-# downloads five ~6MB archives from the pinned codediff release - but it is the way to reproduce
+# downloads five ~6MB archives from the pinned omnidiff release - but it is the way to reproduce
 # a release job locally when one fails.
 # The `trap` is the point of the shell being written this way. A failure partway through - a 404,
 # a checksum mismatch - would otherwise leave `bin/` populated with whichever platform's binary got
@@ -84,7 +84,7 @@ package-all: package
 	for target in $(TARGETS); do \
 		echo "=== $$target ==="; \
 		npm run fetch-binary -- $$target || exit 1; \
-		$(VSCE) package --target $$target --out codediff-$$target.vsix || exit 1; \
+		$(VSCE) package --target $$target --out omnidiff-$$target.vsix || exit 1; \
 	done
 
 clean:
@@ -127,4 +127,4 @@ deploy: deploy-checks
 	@echo
 	@echo "Pushed v$(VERSION). release.yml now builds the six VSIXs, attaches them to a GitHub"
 	@echo "Release, and publishes them. Watch:"
-	@echo "  https://github.com/ivankovic/codediff-vscode/actions/workflows/release.yml"
+	@echo "  https://github.com/ivankovic/omnidiff-vscode/actions/workflows/release.yml"

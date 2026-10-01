@@ -10,12 +10,12 @@ permissions:
   contents: write
 
 jobs:
-  # One VSIX per platform, each carrying the codediff binary for that platform. The version comes
-  # from `codediffVersion` in package.json - a pinned tag, never `latest`, so a rebuild of the same
+  # One VSIX per platform, each carrying the omnidiff binary for that platform. The version comes
+  # from `omnidiffVersion` in package.json - a pinned tag, never `latest`, so a rebuild of the same
   # extension tag produces the same package.
   #
   # The bundle exists mainly for one failure it removes: a VS Code launched from Finder or the Dock
-  # does not inherit a login shell's PATH, so a codediff installed to ~/.cargo/bin is invisible to
+  # does not inherit a login shell's PATH, so an omnidiff installed to ~/.cargo/bin is invisible to
   # it and the extension reports a missing binary the user can plainly run in a terminal.
   platform:
     name: ${{ matrix.target }}
@@ -45,12 +45,12 @@ jobs:
           cache: npm
       - run: npm ci
 
-      # Verifies the download against the codediff release's own SHA256SUMS.txt, which that
+      # Verifies the download against the omnidiff release's own SHA256SUMS.txt, which that
       # repository's release workflow publishes for consumers like this one.
-      - name: Fetch the pinned codediff binary
+      - name: Fetch the pinned omnidiff binary
         run: npm run fetch-binary -- ${{ matrix.target }}
 
-      - run: npx --yes @vscode/vsce package --target ${{ matrix.target }} --out codediff-${{ matrix.target }}.vsix
+      - run: npx --yes @vscode/vsce package --target ${{ matrix.target }} --out omnidiff-${{ matrix.target }}.vsix
 
       # Read the mode out of the packaged archive rather than trusting that it survived. A VSIX is
       # a ZIP, and ZIP carries Unix mode bits only if the writer sets them; if vsce drops them the
@@ -60,18 +60,18 @@ jobs:
       - name: Bundled binary is executable inside the VSIX
         if: matrix.target != 'win32-x64'
         run: |
-          unzip -Z codediff-${{ matrix.target }}.vsix extension/bin/codediff
-          unzip -Z codediff-${{ matrix.target }}.vsix extension/bin/codediff | grep -qE '^-.{2}x' \
+          unzip -Z omnidiff-${{ matrix.target }}.vsix extension/bin/omnidiff
+          unzip -Z omnidiff-${{ matrix.target }}.vsix extension/bin/omnidiff | grep -qE '^-.{2}x' \
             || { echo "::error::bundled binary is not executable inside the VSIX"; exit 1; }
 
       - name: Bundled binary is present (Windows)
         if: matrix.target == 'win32-x64'
-        run: unzip -Z1 codediff-win32-x64.vsix | grep -qx 'extension/bin/codediff.exe'
+        run: unzip -Z1 omnidiff-win32-x64.vsix | grep -qx 'extension/bin/omnidiff.exe'
 
       - uses: actions/upload-artifact@v4
         with:
           name: vsix-${{ matrix.target }}
-          path: codediff-${{ matrix.target }}.vsix
+          path: omnidiff-${{ matrix.target }}.vsix
 
   # The target-less VSIX, for every architecture with no build of its own - arm64 Windows, Alpine,
   # anything new. It carries no binary and falls through to PATH, which is how the extension
@@ -87,17 +87,17 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx --yes @vscode/vsce package --out codediff-fallback.vsix
+      - run: npx --yes @vscode/vsce package --out omnidiff-fallback.vsix
       - name: Carries no binary
         run: |
-          if unzip -Z1 codediff-fallback.vsix | grep -q '^extension/bin/'; then
+          if unzip -Z1 omnidiff-fallback.vsix | grep -q '^extension/bin/'; then
             echo "::error::the fallback VSIX contains a bundled binary"
             exit 1
           fi
       - uses: actions/upload-artifact@v4
         with:
           name: vsix-fallback
-          path: codediff-fallback.vsix
+          path: omnidiff-fallback.vsix
 
   # Attaches every VSIX to the GitHub release. Publishing to the Marketplace or Open VSX is a
   # separate, deliberate step and is not automated here - it needs credentials this repository does

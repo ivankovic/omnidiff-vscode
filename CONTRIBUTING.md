@@ -1,7 +1,7 @@
-# Contributing to CodeDiff for VS Code
+# Contributing to OmniDiff for VS Code
 
 This extension is a thin client. It shells out to the
-[codediff](https://github.com/ivankovic/codediff) binary and paints what comes back; every
+[omnidiff](https://github.com/ivankovic/omnidiff) binary and paints what comes back; every
 interesting decision about *what* a diff says lives in that repository. A bug about a diff being
 wrong belongs there. A bug about a highlight landing in the wrong place, a command misbehaving, or
 an error message being unhelpful belongs here.
@@ -16,7 +16,7 @@ npm test
 ```
 
 Press <kbd>F5</kbd> in VS Code to launch an Extension Development Host with the extension loaded.
-You need a `codediff` binary on `PATH` to do anything useful in it.
+You need an `omnidiff` binary on `PATH` to do anything useful in it.
 
 ## The three checks CI gates on
 
@@ -37,9 +37,9 @@ needs Node 22; see [Releasing](#releasing).
 | File | Imports `vscode`? | Why |
 | --- | --- | --- |
 | `src/columns.ts` | no | Imports **nothing**. Byte → UTF-16 conversion. |
-| `src/codediff.ts` | no | Spawning and JSON validation. |
+| `src/omnidiff.ts` | no | Spawning and JSON validation. |
 | `src/git.ts` | no | `rev-parse` / `git show`, and writing a blob out under its real basename. |
-| `src/binary.ts` | no | Which `codediff` to run: setting → bundled → `PATH`. |
+| `src/binary.ts` | no | Which `omnidiff` to run: setting → bundled → `PATH`. |
 | `src/decorations.ts` | yes | Hunks → `TextEditorDecorationType`. |
 | `src/extension.ts` | yes | Commands and editor glue. |
 
@@ -54,14 +54,14 @@ needs, plus three lines in `extension.ts` that fetch it.
 
 ## Tests
 
-`src/test/columns.test.ts` is the one to be careful with. codediff reports **byte** columns; VS
+`src/test/columns.test.ts` is the one to be careful with. omnidiff reports **byte** columns; VS
 Code wants **UTF-16 code units**. They are identical on any all-ASCII line, so a broken conversion
 passes every casual test and then mis-highlights every line containing an accent, an ideograph or
 an emoji. The suite covers two-byte, three-byte and astral characters, out-of-range clamping,
 mid-character rounding, and a per-byte-offset agreement check against `Buffer.byteLength` across a
 mixed line. Do not delete those for being slow — the whole file runs in milliseconds.
 
-**Running it drops a `.codediff.toml` in this checkout.** codediff stores its settings in a
+**Running it drops a `.omnidiff.toml` in this checkout.** omnidiff stores its settings in a
 dotfile in whatever directory it runs in — there is no user-level config yet — so any invocation
 from here leaves one behind. It is in `.gitignore` and `.vscodeignore`; delete it freely, and do
 not commit it.
@@ -71,27 +71,27 @@ integration test below, does **not** skip when its dependency is missing: git is
 of the commands it covers, so a machine without it should fail here rather than quietly pass. Two of
 its cases exist for reasons that are easy to undo by accident — `git show` output is read as a
 `Buffer` because decoding it as UTF-8 corrupts any file that is not UTF-8, and the materialised file
-keeps its original basename because codediff's language detection reads the path.
+keeps its original basename because omnidiff's language detection reads the path.
 
-`src/test/integration.test.ts` runs the real binary and **skips itself when codediff is not on
-`PATH`**, which includes CI. It is a local-development check, not a gate: installing codediff in CI
+`src/test/integration.test.ts` runs the real binary and **skips itself when omnidiff is not on
+`PATH`**, which includes CI. It is a local-development check, not a gate: installing omnidiff in CI
 would add minutes of Rust compilation to every run for one assertion the unit tests already cover
 apart from the spawn. Run it locally before touching anything about spawning or JSON handling.
 
 ## Style
 
 * Every source file carries the AGPL header. Copy it from an existing file when adding one.
-* Comments explain *why*, not *what*. The main codediff repository's
-  [`CONTRIBUTING.md`](https://github.com/ivankovic/codediff/blob/main/CONTRIBUTING.md) sets the
+* Comments explain *why*, not *what*. The main omnidiff repository's
+  [`CONTRIBUTING.md`](https://github.com/ivankovic/omnidiff/blob/main/CONTRIBUTING.md) sets the
   house style and it applies here too.
 * No `any`, and no `as SomeType` to silence the compiler on data that came from outside the
-  process. `parseDiff` validates codediff's output at the boundary precisely so that nothing
+  process. `parseDiff` validates omnidiff's output at the boundary precisely so that nothing
   downstream has to guess.
 
 ## Bundling the binary
 
-`scripts/fetch-binary.mjs <vsce-target>` downloads the codediff release pinned by
-`codediffVersion` in package.json into `bin/`, verifying it against that release's
+`scripts/fetch-binary.mjs <vsce-target>` downloads the omnidiff release pinned by
+`omnidiffVersion` in package.json into `bin/`, verifying it against that release's
 `SHA256SUMS.txt`. `bin/` is gitignored — it is a build input, not source.
 
 Two things here are easy to get wrong and are checked rather than assumed:
@@ -106,10 +106,10 @@ Two things here are easy to get wrong and are checked rather than assumed:
   and that table list the same targets, because a target in one but not the other either fails the
   build or silently stops publishing a platform.
 
-`codediffVersion` in `package.json` is the pin, and moving it is a deliberate, separate release of
-this extension: a platform build ships a frozen CLI, so nobody gets a newer codediff until that
+`omnidiffVersion` in `package.json` is the pin, and moving it is a deliberate, separate release of
+this extension: a platform build ships a frozen CLI, so nobody gets a newer omnidiff until that
 happens. A release is only usable as a pin if it carries a `SHA256SUMS.txt` and all five archives,
-`aarch64-unknown-linux-gnu` among them — codediff's release workflow gained both in v0.0.13, so
+`aarch64-unknown-linux-gnu` among them — omnidiff's release workflow gained both in v0.0.13, so
 anything older 404s, which is the designed failure rather than quietly producing a VSIX with no
 binary.
 
@@ -171,8 +171,8 @@ repository — see their [install page](https://learn.microsoft.com/cli/azure/in
 
    ```sh
    az login
-   az group create --name codediff-publish --location westeurope
-   az identity create --name codediff-marketplace --resource-group codediff-publish \
+   az group create --name omnidiff-publish --location westeurope
+   az identity create --name omnidiff-marketplace --resource-group omnidiff-publish \
      --query '{clientId:clientId, tenantId:tenantId}' -o table
    ```
 
@@ -190,13 +190,13 @@ repository — see their [install page](https://learn.microsoft.com/cli/azure/in
 
    ```sh
    owner=$(curl -sS https://api.github.com/users/ivankovic | jq -r .id)
-   repo=$(curl -sS https://api.github.com/repos/ivankovic/codediff-vscode | jq -r .id)
+   repo=$(curl -sS https://api.github.com/repos/ivankovic/omnidiff-vscode | jq -r .id)
 
    az identity federated-credential create \
      --name github-marketplace-publish \
-     --identity-name codediff-marketplace --resource-group codediff-publish \
+     --identity-name omnidiff-marketplace --resource-group omnidiff-publish \
      --issuer https://token.actions.githubusercontent.com \
-     --subject "repo:ivankovic@$owner/codediff-vscode@$repo:environment:marketplace-publish" \
+     --subject "repo:ivankovic@$owner/omnidiff-vscode@$repo:environment:marketplace-publish" \
      --audiences api://AzureADTokenExchange
    ```
 
@@ -204,7 +204,7 @@ repository — see their [install page](https://learn.microsoft.com/cli/azure/in
    verbatim into `az identity federated-credential update --subject`.
 
 3. The GitHub side: an environment named `marketplace-publish`
-   (<https://github.com/ivankovic/codediff-vscode/settings/environments>, no protection rules
+   (<https://github.com/ivankovic/omnidiff-vscode/settings/environments>, no protection rules
    needed), and the Client ID and Tenant ID as the `AZURE_CLIENT_ID` and `AZURE_TENANT_ID`
    repository secrets. They are identifiers rather than credentials, but each job checks both are
    non-empty first, because an unset one is an empty string and fails later inside an OIDC exchange
@@ -228,8 +228,8 @@ repository — see their [install page](https://learn.microsoft.com/cli/azure/in
 
    ```sh
    org=<the organization name>
-   principal=$(az identity show --name codediff-marketplace \
-     --resource-group codediff-publish --query principalId -o tsv)
+   principal=$(az identity show --name omnidiff-marketplace \
+     --resource-group omnidiff-publish --query principalId -o tsv)
 
    az rest --method post \
      --resource 499b84ac-1321-427f-aa17-267ca6975798 \
@@ -255,7 +255,7 @@ repository — see their [install page](https://learn.microsoft.com/cli/azure/in
    Azure DevOps has never seen is refused. Check whether the guid is yours with
    `az ad signed-in-user show --query id`; if it is, do this step in the portal instead
    (**Organization Settings → Users → Add users**, entering the identity's *display name*,
-   `codediff-marketplace`), where the browser session is an identity the organization already
+   `omnidiff-marketplace`), where the browser session is an identity the organization already
    knows.
 
    Also confirm under **Organization Settings → Microsoft Entra** that the organization is
@@ -316,4 +316,4 @@ Node 22 — as does anything running `vsce` — and it deletes `bin/` afterwards
 ## Licence
 
 By contributing you agree that your contributions are licensed under AGPL-3.0-or-later, the same
-licence as [`LICENSE`](LICENSE) and as codediff itself.
+licence as [`LICENSE`](LICENSE) and as omnidiff itself.

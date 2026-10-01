@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -50,7 +50,7 @@ test('an all-ASCII line is unchanged, which is why the bug hides', () => {
 });
 
 test('the measured real-world case: two-byte characters shift every later column', () => {
-  // Verified against the actual binary: `codediff --mode json` reports start_column 15 here,
+  // Verified against the actual binary: `omnidiff --mode json` reports start_column 15 here,
   // where VS Code's Position.character needs 12.
   const line = 'x = "ααα" + bbb';
   assert.equal(Buffer.byteLength(line, 'utf8'), 18);

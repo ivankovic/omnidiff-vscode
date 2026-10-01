@@ -5,9 +5,9 @@ body:
   - type: markdown
     attributes:
       value: >-
-        If the *painting* is wrong but codediff's own verdict is right, it belongs here. If the
-        verdict is wrong, `codediff --mode json BEFORE AFTER` shows it without VS Code involved and
-        the report belongs in the codediff repository instead.
+        If the *painting* is wrong but omnidiff's own verdict is right, it belongs here. If the
+        verdict is wrong, `omnidiff --mode json BEFORE AFTER` shows it without VS Code involved and
+        the report belongs in the omnidiff repository instead.
 
   - type: textarea
     id: what
@@ -15,7 +15,7 @@ body:
       label: What happened
       description: What you ran, what you expected, and what you saw instead.
       placeholder: |
-        Ran `CodeDiff: Diff With HEAD` on a .ts file.
+        Ran `OmniDiff: Diff With HEAD` on a .ts file.
         Expected the moved function highlighted in the move colour.
         Nothing was painted, and no error appeared.
     validations:
@@ -40,16 +40,16 @@ body:
   - type: dropdown
     id: binary
     attributes:
-      label: Which codediff binary is being used
+      label: Which omnidiff binary is being used
       description: >-
-        Resolution order is `codediff.binaryPath` (if changed from the default) → the binary bundled
-        in this VSIX → `codediff` on PATH. This is the field that explains most "nothing happens"
+        Resolution order is `omnidiff.binaryPath` (if changed from the default) → the binary bundled
+        in this VSIX → `omnidiff` on PATH. This is the field that explains most "nothing happens"
         reports, particularly on a VS Code launched from Finder or the Dock, which does not inherit
         a login shell's PATH.
       options:
         - Bundled with the extension
         - Found on PATH
-        - An explicit codediff.binaryPath
+        - An explicit omnidiff.binaryPath
         - Not sure
     validations:
       required: true
@@ -57,13 +57,13 @@ body:
   - type: input
     id: cli
     attributes:
-      label: Output of `codediff --version`
+      label: Output of `omnidiff --version`
       description: From a terminal. Leave blank if the binary is the bundled one.
 
   - type: dropdown
     id: rendermode
     attributes:
-      label: codediff.renderMode
+      label: omnidiff.renderMode
       options:
         - default
         - minimal

@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -17,7 +17,7 @@
  */
 
 /**
- * Turning codediff's hunks into editor decorations.
+ * Turning omnidiff's hunks into editor decorations.
  *
  * The colours are this extension's own registered colour IDs, declared in `contributes.colors`.
  * All four defaults are literals rather than references to the theme's own keys, for one reason
@@ -43,13 +43,13 @@
  * Contributing IDs rather than referencing shared keys directly is also what makes these
  * overridable in isolation. Retuning `editor.symbolHighlightBackground` in
  * `workbench.colorCustomizations` would repaint find-match highlights across the whole editor;
- * retuning `codediff.moveBackground` - per theme, if wanted - touches nothing else.
+ * retuning `omnidiff.moveBackground` - per theme, if wanted - touches nothing else.
  */
 
 import * as vscode from 'vscode';
 
 import { byteColumnToUtf16 } from './columns';
-import type { JsonHunk, JsonRange, Operation } from './codediff';
+import type { JsonHunk, JsonRange, Operation } from './omnidiff';
 
 /** One decoration type per operation, created once and reused for the editor's lifetime. */
 export type DecorationTypes = Readonly<Record<Operation, vscode.TextEditorDecorationType>>;
@@ -64,15 +64,15 @@ export function createDecorationTypes(): DecorationTypes {
   });
 
   return Object.freeze({
-    insert: vscode.window.createTextEditorDecorationType(background('codediff.insertBackground')),
-    delete: vscode.window.createTextEditorDecorationType(background('codediff.deleteBackground')),
-    update: vscode.window.createTextEditorDecorationType(background('codediff.updateBackground')),
-    move: vscode.window.createTextEditorDecorationType(background('codediff.moveBackground')),
+    insert: vscode.window.createTextEditorDecorationType(background('omnidiff.insertBackground')),
+    delete: vscode.window.createTextEditorDecorationType(background('omnidiff.deleteBackground')),
+    update: vscode.window.createTextEditorDecorationType(background('omnidiff.updateBackground')),
+    move: vscode.window.createTextEditorDecorationType(background('omnidiff.moveBackground')),
   });
 }
 
 /**
- * Converts one codediff range to a `vscode.Range` against `document`.
+ * Converts one omnidiff range to a `vscode.Range` against `document`.
  *
  * Both columns go through `byteColumnToUtf16` against **their own** row's text - not the start
  * row's - which is the bug this function exists to make impossible to write by accident.
@@ -119,7 +119,7 @@ export function applyHunks(
     if (hunk.move_target) {
       // 0-indexed in the JSON, 1-indexed for a reader.
       decoration.hoverMessage = new vscode.MarkdownString(
-        `**CodeDiff:** moved to line ${hunk.move_target.start_row + 1}`
+        `**OmniDiff:** moved to line ${hunk.move_target.start_row + 1}`
       );
     }
     bucket.push(decoration);

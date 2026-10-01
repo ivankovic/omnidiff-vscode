@@ -1,4 +1,4 @@
-/*  This file is part of the CodeDiff code diffing tool.
+/*  This file is part of the OmniDiff code diffing tool.
  *
  *  Copyright (C) 2026 Marko Ivankovic
  *
@@ -17,10 +17,10 @@
  */
 
 /**
- * The one test that runs the real binary, end to end: spawn codediff, parse its JSON, convert its
+ * The one test that runs the real binary, end to end: spawn omnidiff, parse its JSON, convert its
  * byte column, and land on the right character.
  *
- * **Skipped when codediff is not on PATH**, which includes CI unless it installs one - building it
+ * **Skipped when omnidiff is not on PATH**, which includes CI unless it installs one - building it
  * takes minutes (every tree-sitter grammar compiles from C, under `lto = "fat"`). That makes this a
  * local-development check rather than a gate, and `node --test` reports it as skipped rather than
  * passing silently. Everything it covers except the spawn itself is also covered by the pure unit
@@ -35,11 +35,11 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 
 import { byteColumnToUtf16 } from '../columns';
-import { renderOptionsToml, runDiff } from '../codediff';
+import { renderOptionsToml, runDiff } from '../omnidiff';
 
-function codediffAvailable(): boolean {
+function omnidiffAvailable(): boolean {
   try {
-    execFileSync('codediff', ['--help'], { stdio: 'ignore' });
+    execFileSync('omnidiff', ['--help'], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -48,16 +48,16 @@ function codediffAvailable(): boolean {
 
 test(
   'a real diff of a non-ASCII line lands on the right character',
-  { skip: codediffAvailable() ? false : 'codediff not on PATH' },
+  { skip: omnidiffAvailable() ? false : 'omnidiff not on PATH' },
   async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'codediff-vscode-'));
+    const dir = mkdtempSync(join(tmpdir(), 'omnidiff-vscode-'));
     const before = join(dir, 'before.py');
     const after = join(dir, 'after.py');
     // Three two-byte characters before the change, so a byte column and a UTF-16 column disagree.
     writeFileSync(before, 'x = "ααα" + aaa\n', 'utf8');
     writeFileSync(after, 'x = "ααα" + bbb\n', 'utf8');
 
-    const diff = await runDiff('codediff', before, after);
+    const diff = await runDiff('omnidiff', before, after);
     const hunk = diff.after.hunks[0];
     assert.ok(hunk, 'expected at least one hunk on the after side');
 
@@ -109,7 +109,7 @@ def perimeter(width, height):
 `;
 
 /**
- * codediff resolves its own configuration from the nearest `.codediff.toml` at or above its
+ * omnidiff resolves its own configuration from the nearest `.omnidiff.toml` at or above its
  * working directory, so with `mode` left at `default` - where the whole point is to defer to that
  * configuration - the working directory decides which render options apply, and therefore which
  * hunks come back. Before `runDiff` took a `cwd` it inherited the extension host's, which is
@@ -117,21 +117,21 @@ def perimeter(width, height):
  * between two launches of the same window.
  *
  * The two configurations are all six render options off against all six on, not one field flipped:
- * measured against codediff 0.0.12, `paint_displaced_moves` is the only one that changes this
+ * measured against omnidiff 0.0.12, `paint_displaced_moves` is the only one that changes this
  * fixture *from an all-off baseline* - it is what makes the ` + "ααα"` trailing the renamed
  * identifier a move hunk of its own rather than nothing - but turning only that one off again from
  * an all-on baseline leaves the hunk there, because another option covers the same ground. A
  * single-field difference would therefore pass whether or not `cwd` was honoured at all.
  *
  * Asserted as "one paints more than the other" rather than against fixed counts, because the exact
- * painting is codediff's business and moves between releases; that the working directory decides
+ * painting is omnidiff's business and moves between releases; that the working directory decides
  * which of the two applies is the part that belongs to this extension.
  */
 test(
-  'the working directory selects the codediff configuration',
-  { skip: codediffAvailable() ? false : 'codediff not on PATH' },
+  'the working directory selects the omnidiff configuration',
+  { skip: omnidiffAvailable() ? false : 'omnidiff not on PATH' },
   async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'codediff-vscode-cwd-'));
+    const dir = mkdtempSync(join(tmpdir(), 'omnidiff-vscode-cwd-'));
     const before = join(dir, 'before.py');
     const after = join(dir, 'after.py');
     writeFileSync(before, BEFORE_SOURCE, 'utf8');
@@ -145,7 +145,7 @@ test(
     ] as const) {
       mkdirSync(directory);
       writeFileSync(
-        join(directory, '.codediff.toml'),
+        join(directory, '.omnidiff.toml'),
         [
           '[render_options]',
           `leading_whitespace = ${enabled}`,
@@ -160,8 +160,8 @@ test(
       );
     }
 
-    const without = await runDiff('codediff', before, after, { cwd: off });
-    const painted = await runDiff('codediff', before, after, { cwd: on });
+    const without = await runDiff('omnidiff', before, after, { cwd: off });
+    const painted = await runDiff('omnidiff', before, after, { cwd: on });
 
     assert.ok(
       painted.after.hunks.length > without.after.hunks.length,
@@ -171,9 +171,9 @@ test(
 );
 
 /**
- * `codediff.renderMode: custom` works by writing a config file and pointing `CODEDIFF_CONFIG` at
- * it, which codediff reads before any other layer and without walking up. This is the assertion
- * that the variable actually reaches the process and outranks a `.codediff.toml` sitting in the
+ * `omnidiff.renderMode: custom` works by writing a config file and pointing `OMNIDIFF_CONFIG` at
+ * it, which omnidiff reads before any other layer and without walking up. This is the assertion
+ * that the variable actually reaches the process and outranks a `.omnidiff.toml` sitting in the
  * working directory - the whole mechanism is one environment variable, and nothing else here would
  * notice if it stopped being honoured.
  *
@@ -181,10 +181,10 @@ test(
  * cwd being consulted instead.
  */
 test(
-  'CODEDIFF_CONFIG outranks a .codediff.toml in the working directory',
-  { skip: codediffAvailable() ? false : 'codediff not on PATH' },
+  'OMNIDIFF_CONFIG outranks a .omnidiff.toml in the working directory',
+  { skip: omnidiffAvailable() ? false : 'omnidiff not on PATH' },
   async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'codediff-vscode-env-'));
+    const dir = mkdtempSync(join(tmpdir(), 'omnidiff-vscode-env-'));
     const before = join(dir, 'before.py');
     const after = join(dir, 'after.py');
     writeFileSync(before, BEFORE_SOURCE, 'utf8');
@@ -203,16 +203,16 @@ test(
     // The working directory says everything on; the environment says everything off.
     const cwd = join(dir, 'cwd');
     mkdirSync(cwd);
-    writeFileSync(join(cwd, '.codediff.toml'), all(true), 'utf8');
+    writeFileSync(join(cwd, '.omnidiff.toml'), all(true), 'utf8');
     const override = join(dir, 'override.toml');
     writeFileSync(override, all(false), 'utf8');
 
-    const inherited = await runDiff('codediff', before, after, { cwd });
-    const overridden = await runDiff('codediff', before, after, { cwd, configPath: override });
+    const inherited = await runDiff('omnidiff', before, after, { cwd });
+    const overridden = await runDiff('omnidiff', before, after, { cwd, configPath: override });
 
     assert.ok(
       inherited.after.hunks.length > overridden.after.hunks.length,
-      `expected CODEDIFF_CONFIG to win: ${overridden.after.hunks.length} hunks against the ` +
+      `expected OMNIDIFF_CONFIG to win: ${overridden.after.hunks.length} hunks against the ` +
         `directory's ${inherited.after.hunks.length}`
     );
   }

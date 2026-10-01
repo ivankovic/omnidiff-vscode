@@ -1,11 +1,21 @@
 # Changelog
 
-Notable changes to the CodeDiff extension. The format follows
+Notable changes to the OmniDiff extension (published as CodeDiff, `ivankovic.codediff`, up to
+0.0.1). The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Changes to the `codediff` CLI itself live in
-[its own repository](https://github.com/ivankovic/codediff); this file covers the extension.
+Changes to the `omnidiff` CLI itself live in
+[its own repository](https://github.com/ivankovic/omnidiff); this file covers the extension.
+
+## [Unreleased]
+
+### Changed
+
+- **Renamed from CodeDiff to OmniDiff**, following the CLI (v0.2.0). This is a new extension,
+  `ivankovic.omnidiff`; the commands, settings and colour IDs are `omnidiff.*`. On first activation,
+  any `codediff.*` setting is copied to its `omnidiff.*` counterpart where that one is unset. The
+  bundled binary is `omnidiff` v0.2.0, and a `PATH` lookup looks for `omnidiff`.
 
 ## [0.0.1] - 2026-09-17
 
