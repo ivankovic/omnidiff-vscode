@@ -1,7 +1,7 @@
 # OmniDiff for VS Code
 
 [![CI](https://github.com/ivankovic/omnidiff-vscode/actions/workflows/ci.yml/badge.svg)](https://github.com/ivankovic/omnidiff-vscode/actions/workflows/ci.yml)
-[![License: AGPL v3+](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--only-blue)](LICENSE)
 
 Syntax-aware diff highlighting in VS Code, backed by the
 [omnidiff](https://github.com/ivankovic/omnidiff) CLI.
@@ -199,5 +199,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). In short: `npm ci`, then `npm run lint` 
 
 ## License
 
-AGPL-3.0-or-later — see [LICENSE](LICENSE), the same licence as
+AGPL-3.0-only — see [LICENSE](LICENSE), the same licence as
 [omnidiff](https://github.com/ivankovic/omnidiff) itself.

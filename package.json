@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "omnidiffVersion": "v0.2.0",
   "publisher": "ivankovic",
-  "license": "AGPL-3.0-or-later",
+  "license": "AGPL-3.0-only",
   "author": "Marko Ivankovic",
   "repository": {
     "type": "git",

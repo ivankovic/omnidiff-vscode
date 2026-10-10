@@ -320,5 +320,5 @@ Node 22 — as does anything running `vsce` — and it deletes `bin/` afterwards
 
 ## Licence
 
-By contributing you agree that your contributions are licensed under AGPL-3.0-or-later, the same
+By contributing you agree that your contributions are licensed under AGPL-3.0-only, the same
 licence as [`LICENSE`](LICENSE) and as omnidiff itself.
